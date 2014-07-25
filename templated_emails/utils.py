@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.sites.models import Site
 from django.core.exceptions import ImproperlyConfigured
 from django.core.mail import EmailMultiAlternatives
 from django.db import models
@@ -56,18 +55,23 @@ def send_templated_email(recipients, template_path, context=None,
     recipient_pks = [r.pk for r in recipients if isinstance(r, get_user_model())]
     recipient_emails = [e for e in recipients if not isinstance(e, get_user_model())]
     send = _send_task.delay if use_celery else _send
-    msg = send(recipient_pks, recipient_emails, template_path, context, from_email,
-         fail_silently, extra_headers=extra_headers)
+    msg = send(
+        recipient_pks,
+        recipient_emails,
+        template_path,
+        context,
+        from_email,
+        fail_silently,
+        extra_headers=extra_headers)
     return msg
 
 
 class SendThread(threading.Thread):
-    def __init__(self, recipient, current_language, current_site, default_context,
+    def __init__(self, recipient, current_language, default_context,
                  subject_path, text_path, html_path, from_email=settings.DEFAULT_FROM_EMAIL,
                  fail_silently=False):
         self.recipient = recipient
         self.current_language = current_language
-        self.current_site = current_site
         self.default_context = default_context
         self.subject_path = subject_path
         self.text_path = text_path
@@ -124,10 +128,8 @@ def _send(recipient_pks, recipient_emails, template_path, context, from_email,
     recipients += recipient_emails
 
     current_language = get_language()
-    current_site = Site.objects.get(id=settings.SITE_ID)
 
     default_context = context or {}
-    default_context["current_site"] = current_site
     default_context["STATIC_URL"] = settings.STATIC_URL
 
     subject_path = "%s/short.txt" % template_path
@@ -136,7 +138,7 @@ def _send(recipient_pks, recipient_emails, template_path, context, from_email,
 
     for recipient in recipients:
         if use_threading:
-            SendThread(recipient, current_language, current_site, default_context, subject_path,
+            SendThread(recipient, current_language, default_context, subject_path,
                        text_path, html_path, from_email, fail_silently).start()
             return
         # if it is user, get the email and switch the language
