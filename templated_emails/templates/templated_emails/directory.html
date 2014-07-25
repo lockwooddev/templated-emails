@@ -8,7 +8,7 @@
                 {% endwith %}
             {% else %}
                 {% with path|add:"/"|add:key as path %}
-                    <a href="{% url templated_email_view path %}">{{ key }}</a>
+                    <a href="{% url "templated_email_view" path %}">{{ key }}</a>
                 {% endwith %}
             {% endif %}
         </li>

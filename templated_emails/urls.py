@@ -1,5 +1,7 @@
-from django.conf.urls.defaults import *
+from django.conf.urls import patterns, url
+
 from .views import *
+
 
 urlpatterns = patterns('',
     url(r'^$', index, name="templated_emails_index"),

@@ -1,22 +1,23 @@
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.contrib.sites.models import Site
+from django.core.exceptions import ImproperlyConfigured
+from django.core.mail import EmailMultiAlternatives
+from django.db import models
+from django.template import Context, TemplateDoesNotExist
+from django.template.loader import render_to_string
+from django.utils.translation import get_language, activate
+
 import logging
 import os
 import threading
-
-from django.core.mail import EmailMultiAlternatives
-from django.conf import settings
-from django.template import Context, TemplateDoesNotExist
-from django.contrib.sites.models import Site
-from django.template.loader import render_to_string
-from django.utils.translation import get_language, activate
-from django.db import models
-from django.core.exceptions import ImproperlyConfigured
-from django.contrib.auth import get_user_model
 
 
 try:
     from celery.task import task
 except ImportError:
     task = lambda f: f
+
 
 use_pynliner = getattr(settings, 'TEMPLATEDEMAILS_USE_PYNLINER', False)
 use_celery = getattr(settings, 'TEMPLATEDEMAILS_USE_CELERY', False)
@@ -57,7 +58,6 @@ def send_templated_email(recipients, template_path, context=None,
     send = _send_task.delay if use_celery else _send
     msg = send(recipient_pks, recipient_emails, template_path, context, from_email,
          fail_silently, extra_headers=extra_headers)
-
     return msg
 
 
