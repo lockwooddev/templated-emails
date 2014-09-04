@@ -4,8 +4,8 @@ from django.conf import settings
 import re
 
 
-def recursive_block_replace(template, data=None, replace_static_url=True, replace_trans=True,
-                            replace_with=True, replace_if=True):
+def recursive_block_replace(template, data=None, replace_static_url=True, replace_domain=True,
+                            replace_trans=True, replace_with=True, replace_if=True):
     #check the extends
     # first try to replace with current data
     if isinstance(template.nodelist[0], ExtendsNode):
@@ -15,8 +15,13 @@ def recursive_block_replace(template, data=None, replace_static_url=True, replac
         return recursive_block_replace(template.nodelist[0].get_parent(""), data)
     else:
         final_string = replace_blocks(template, data)
+
         if replace_static_url:
             final_string = final_string.replace("{{ STATIC_URL }}", settings.STATIC_URL)
+
+        if replace_domain:
+            final_string = final_string.replace("{{ SITE_DOMAIN }}", settings.SITE_DOMAIN)
+
         if replace_trans:
             p = re.compile('(\{% blocktrans .* %\})', re.IGNORECASE)
             final_string = p.sub('', final_string)

@@ -6,6 +6,7 @@ from django.db import models
 from django.template import Context, TemplateDoesNotExist
 from django.template.loader import render_to_string
 from django.utils.translation import get_language, activate
+from django.utils import timezone
 
 import logging
 import os
@@ -73,6 +74,8 @@ def _send(recipient_pks, recipient_emails, template_path, context, from_email,
 
     default_context = context or {}
     default_context["STATIC_URL"] = settings.STATIC_URL
+    default_context["SITE_DOMAIN"] = settings.SITE_DOMAIN
+    default_context["NOW"] = timezone.now()
 
     subject_path = "%s/short.txt" % template_path
     text_path = "%s/email.txt" % template_path
